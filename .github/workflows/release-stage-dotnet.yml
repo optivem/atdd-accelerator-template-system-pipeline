@@ -1,0 +1,44 @@
+name: release-stage-dotnet
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: system-test
+
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Checkout System Test Repository
+      uses: actions/checkout@v4
+      with:
+        repository: optivem/atdd-accelerator-template-system-test-dotnet
+        path: system-test
+
+    - name: Release System
+      run: docker compose -f docker-compose.yml up -d
+      # NOTE: In real life applications, you'd be deploying your System to some Environment
+      # For this demo application, I'm using Docker Compose
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+    
+    - name: Build
+      run: dotnet build
+
+    - name: Install Playwright Browsers
+      run: pwsh bin/Debug/net8.0/playwright.ps1 install
+
+    - name: Test
+      run: dotnet test
